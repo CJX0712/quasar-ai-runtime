@@ -1,0 +1,97 @@
+# Quasar AI Runtime - 在线档配置模板
+#
+# 复制为 configs/local.toml 后使用（local.toml 已在 .gitignore 中，不会入库）：
+#   copy configs\local.toml.example configs\local.toml
+#   quasar --config configs\local.toml doctor
+#
+# 本档会真实调用本机 Ollama：
+#   生成模型  qwen2.5:7b-instruct-q4_K_M （支持 tools，用于智能体工具调用）
+#   嵌入模型  bge-m3:latest              （1024 维，中英双语）
+#   重排模型  qwen3:4b                   （LLM-as-reranker）
+
+[app]
+name = "quasar"
+mode = "online"
+log_level = "INFO"
+
+[paths]
+data_dir = "data"
+vector_dir = "data/vectors"
+memory_db = "data/memory.sqlite3"
+trace_file = "data/trace.jsonl"
+cache_dir = "data/cache"
+
+[llm]
+provider = "ollama"
+model = "qwen2.5:7b-instruct-q4_K_M"
+base_url = "http://127.0.0.1:11434"
+api_key = ""
+temperature = 0.1
+max_tokens = 1024
+# 上下文窗口，必须显式给。不设时 Ollama 用它的默认值（不同版本 2048/4096 不一），
+# 而提示词超出窗口会被**静默从前面裁掉**——可能裁掉"必须标注 [n] 依据"这条系统规则
+# 或裁掉材料本身，调用方只会看到模型引用了不存在的编号。
+# 实测：中文约 0.73 token/字，5 条材料 × 700 字符 + 系统提示 + 工具 schema ≈ 3000 token。
+num_ctx = 8192
+timeout_s = 300.0
+
+[embedding]
+provider = "ollama"
+model = "bge-m3:latest"
+base_url = "http://127.0.0.1:11434"
+dim = 1024
+batch_size = 4
+
+[rerank]
+# lexical 是"零额外成本"的选择（词法重合度打分，纯 CPU，毫秒级）。
+# llm 质量略好，但在 CPU 上跑 7B/4B 模型每问要多花十几到几十秒——
+# 交互式使用建议保持 lexical，离线批处理再换 llm。
+provider = "lexical"      # none | lexical | llm
+model = "qwen3:4b"
+candidates = 8            # 喂给重排器的候选数。换 llm 时别调大，这是主要成本项
+top_n = 6                 # 要求返回的条数（会与 retrieval.top_k 取较大值）
+
+[retrieval]
+top_k = 5
+candidate_k = 30
+rrf_k = 60
+lexical_weight = 1.0
+dense_weight = 1.0
+
+[chunking]
+strategy = "recursive"
+chunk_size = 700
+chunk_overlap = 120
+
+[vectorstore]
+provider = "numpy"
+collection = "quasar_chunks"
+
+[guard]
+require_citations = true
+min_evidence_overlap = 0.05
+max_unbound_claims = 0
+# 与离线档同为 0.3。"在线档语义检索更强所以可以放宽"的旧理由不成立：
+# 这道门槛是纯词法判据，与检索质量无关。放宽到 0.15 时，"量子纠缠退相干时间"
+# 这类完全无关的问题（实测覆盖度 0.167）也能越过门槛，让模型拿五条无关材料硬凑引用。
+# 实测分布（查询侧分词）：真相关问题 >= 0.375，语料外问题 <= 0.167。
+# 若你的问法与语料用词差异大导致误拒，优先改问法，其次再降这个值。
+min_question_coverage = 0.3
+refuse_message = "已检索到的资料中没有足够依据，因此不作回答。"
+
+[agent]
+max_steps = 6
+max_tool_calls = 8
+# rules：先确定性预检索，材料作为上下文注入，模型只负责带引用地综合。
+# llm  ：不给预检索，模型自己决定调什么工具——用于验证工具调用链路，
+#        也用于需要多步工具组合的任务，但请先读下面这段实测结论。
+#
+# 默认用 rules 是踩过坑之后的决定：改成 llm 跑同一份语料，qwen2.5:7b
+# 直接开答、一次工具都没调（tool_calls=0），于是材料为空、整条问答必然拒答。
+# 7B 级模型对"要不要调工具"的判断很不稳定，事实型问答不该把取证交给它赌。
+# （loop.py 里已加兜底：llm 规划器下漏调工具时系统会替它检索一次；
+#   但要验证真实的多步工具调用，仍建议显式改成 llm。）
+planner = "rules"
+
+[trace]
+enabled = true

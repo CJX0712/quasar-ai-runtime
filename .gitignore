@@ -1,0 +1,45 @@
+# Quasar AI Runtime - 构建与运行产物
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# 测试与缓存
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# 运行期数据（向量库、SQLite、trace、评测报告）
+data/
+!data/.gitkeep
+*.db
+*.sqlite3
+*.npz
+*.jsonl
+!docs/**/*.jsonl
+
+# 本地配置与密钥
+.env
+.env.*
+!.env.example
+configs/local.toml
+
+# 本地调试 / 探针产物
+data-online/
+data-verify-debug/
+.recon/
+
+# 编辑器与系统
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log

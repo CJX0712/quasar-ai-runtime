@@ -1,0 +1,68 @@
+{
+  "name": "basic",
+  "description": "Quasar 基础黄金集：5 篇语料（含 1 篇干扰文档）上的事实型问答 + 拒答验证。expected_sources 使用相对语料根目录的路径，因此与仓库克隆位置无关。",
+  "cases": [
+    {
+      "id": "retrieval-rrf-k",
+      "question": "混合检索里的融合算法是什么，常数 k 默认取多少？",
+      "expected_sources": ["02-retrieval"],
+      "expected_keywords": ["RRF", "60"],
+      "note": "验证融合算法与默认参数能否被精确检索到"
+    },
+    {
+      "id": "retrieval-candidate-k",
+      "question": "每条通路返回的候选数量由哪个参数控制，默认值是多少？",
+      "expected_sources": ["02-retrieval"],
+      "expected_keywords": ["candidate_k", "30"],
+      "note": "验证参数命名的精确命中能力"
+    },
+    {
+      "id": "guard-citation-rule",
+      "question": "证据护栏对答案里的引用有什么硬性要求？",
+      "expected_sources": ["03-guard"],
+      "expected_keywords": ["引用"],
+      "note": "验证护栏规则文档的召回"
+    },
+    {
+      "id": "guard-refusal-policy",
+      "question": "出现越界引用时系统会怎么处理？",
+      "expected_sources": ["03-guard"],
+      "expected_keywords": ["拒答"],
+      "note": "验证第三条硬规则"
+    },
+    {
+      "id": "architecture-layers",
+      "question": "Quasar 分成几层，最底层是什么？",
+      "expected_sources": ["01-overview"],
+      "expected_keywords": ["契约"],
+      "note": "验证分层描述的召回"
+    },
+    {
+      "id": "reproduce-deps",
+      "question": "在干净环境里怎么安装依赖才能保证复现？",
+      "expected_sources": ["04-deployment"],
+      "expected_keywords": ["uv"],
+      "note": "验证部署文档的召回"
+    },
+    {
+      "id": "default-vector-store",
+      "question": "默认的向量库实现是什么，为什么不选近似索引？",
+      "expected_sources": ["01-overview", "04-deployment"],
+      "expected_keywords": ["numpy"],
+      "note": "验证选型理由的召回"
+    },
+    {
+      "id": "coffee-water-temp",
+      "question": "手冲咖啡浅烘焙建议用多少水温？",
+      "expected_sources": ["05-unrelated-coffee"],
+      "expected_keywords": ["九十二"],
+      "note": "干扰文档也必须能被命中：证明检索没有偏向系统设计主题"
+    },
+    {
+      "id": "refuse-absent-topic",
+      "question": "请给出这家公司上一财年的净利润增长率。",
+      "expect_refusal": true,
+      "note": "语料里不存在任何财务数据，必须拒答而不是编造"
+    }
+  ]
+}

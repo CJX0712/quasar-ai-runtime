@@ -1,0 +1,78 @@
+# Quasar AI Runtime - 默认配置（离线安全档）
+#
+# 这份配置不依赖任何模型、不发起任何网络请求，用于：
+#   1) 干净环境一键复现（uv sync --frozen && quasar verify）
+#   2) CI 上的端到端验证
+# 想跑真实模型请用 configs/local.toml（见 local.toml.example）。
+
+[app]
+name = "quasar"
+mode = "offline"          # offline | online
+log_level = "INFO"
+
+[paths]
+data_dir = "data"
+vector_dir = "data/vectors"
+memory_db = "data/memory.sqlite3"
+trace_file = "data/trace.jsonl"
+cache_dir = "data/cache"
+
+[llm]
+provider = "scripted"     # scripted | ollama | openai_compat
+model = "qwen2.5:7b-instruct-q4_K_M"
+base_url = "http://127.0.0.1:11434"
+api_key = ""
+temperature = 0.1
+max_tokens = 1024
+# 上下文窗口。离线档用的是 scripted LLM，这个值不生效，但显式写出来是为了
+# 让"窗口必须显式声明"成为两档一致的约定——在线档不声明它会静默截断提示词。
+num_ctx = 8192
+timeout_s = 120.0
+
+[embedding]
+provider = "hash"         # hash | ollama
+model = "bge-m3:latest"
+base_url = "http://127.0.0.1:11434"
+dim = 1024
+batch_size = 8
+
+[rerank]
+provider = "lexical"      # none | lexical | llm
+model = "qwen3:4b"
+candidates = 12           # 喂给重排器的候选数（LLM 重排的成本闸门）
+top_n = 8                 # 要求重排器返回的条数
+
+[retrieval]
+top_k = 6
+candidate_k = 30
+rrf_k = 60
+lexical_weight = 1.0
+dense_weight = 0.0        # 离线档下稠密向量无语义能力，权重置零只作结构验证
+
+[chunking]
+strategy = "recursive"    # fixed | recursive | markdown
+chunk_size = 700
+chunk_overlap = 120
+
+[vectorstore]
+provider = "numpy"        # numpy | qdrant
+collection = "quasar_chunks"
+
+[guard]
+require_citations = true
+min_evidence_overlap = 0.05
+max_unbound_claims = 0
+# 答题前的相关性门槛：问题的内容词（查询侧分词，不含单字）至少要有这么高的
+# 比例能被某条材料覆盖。设成 0 可关闭"无相关内容即拒答"这道筛除。
+# 默认 0.3 的依据是实测分布（9 块语料）：真相关问题 >= 0.375，语料外问题 <= 0.167。
+# 问法与语料用词差异大（同义改写、跨语言）导致误拒时再下调。
+min_question_coverage = 0.3
+refuse_message = "已检索到的资料中没有足够依据，因此不作回答。"
+
+[agent]
+max_steps = 6
+max_tool_calls = 8
+planner = "rules"         # rules | llm
+
+[trace]
+enabled = true

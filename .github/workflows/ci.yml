@@ -1,0 +1,48 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  offline-verify:
+    name: 干净环境一键复现（离线，零模型依赖）
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: 按锁定清单安装依赖（不做任何重新解析）
+        run: uv sync --frozen
+
+      - name: 门禁 - 扫描 emoji 功能图标
+        run: uv run --no-sync python tools/scan_emoji.py
+
+      - name: 端到端验证（离线确定性模式，无网络、无模型）
+        run: uv run --no-sync python tools/verify.py
+
+      - name: 单元测试 + 契约一致性测试
+        run: uv run --no-sync python -m pytest -q tests --basetemp=data/.pytest-tmp
+
+  package-check:
+    name: 构建分发包
+    runs-on: ubuntu-latest
+    needs: offline-verify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+      - run: uv sync --frozen
+      - run: uv build
+      - run: uv run --no-sync python -c "import quasar, pathlib; print('quasar', quasar.__version__, pathlib.Path(quasar.__file__).parent)"
