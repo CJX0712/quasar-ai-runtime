@@ -1,5 +1,12 @@
 # Quasar · 模块化端到端可运行的 AI 运行时
 
+<p align="center">
+  <a href="https://github.com/CJX0712/quasar-ai-runtime/actions/workflows/ci.yml"><img src="https://github.com/CJX0712/quasar-ai-runtime/actions/workflows/ci.yml/badge.svg" alt="ci"></a>
+  <a href="https://github.com/CJX0712/quasar-ai-runtime/releases"><img src="https://img.shields.io/github/v/release/CJX0712/quasar-ai-runtime?sort=semver" alt="release"></a>
+  <a href="https://github.com/CJX0712/quasar-ai-runtime/blob/main/LICENSE"><img src="https://img.shields.io/github/license/CJX0712/quasar-ai-runtime" alt="license"></a>
+  <img src="https://img.shields.io/badge/author-%E6%99%A8%E6%98%9F-1f6feb" alt="author">
+</p>
+
 > 混合检索 + 工具调用智能体 + 证据绑定回答 · 单一职责模块 · 可在干净环境一键复现
 > **作者：晨星** · MIT License
 
