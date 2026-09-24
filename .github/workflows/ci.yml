@@ -35,7 +35,12 @@ jobs:
         run: uv run --no-sync python tools/verify.py
 
       - name: 单元测试 + 契约一致性测试
-        run: uv run --no-sync python -m pytest -q tests --basetemp=data/.pytest-tmp --ignore=tools
+        run: |
+          # data/ 是运行期产物目录（被 .gitignore 排除），干净 checkout 里可能不存在。
+          # pytest 对 --basetemp 只做 mkdir()（不带 parents=True），父目录缺失会直接
+          # FileNotFoundError 并让整批用例 ERROR，所以这里先确保父目录存在。
+          mkdir -p data
+          uv run --no-sync python -m pytest -q tests --basetemp=data/.pytest-tmp --ignore=tools
 
   package-check:
     name: 构建分发包

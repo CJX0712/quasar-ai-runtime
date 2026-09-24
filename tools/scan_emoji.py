@@ -26,10 +26,14 @@ EMOJI = re.compile(
 # 内容目录：文档与素材里出现 emoji 属正常内容，不算功能图标违规
 CONTENT_DIRS = {"docs", "assets"}
 
-# 永不扫描的目录
+# 永不扫描的目录。
+# data* 是运行期产物目录（向量库 / trace / 评测报告），CI 的 pytest basetemp
+# 默认也落在 data/.pytest-tmp 下——而测试夹具会故意写入含 emoji 的文件。
+# 若不跳过，test_real_repository_is_clean 会因为自己刚写下的夹具而误报。
 SKIP_DIRS = {
     ".git", ".venv", "venv", "node_modules", "__pycache__",
     ".pytest_cache", ".ruff_cache", ".mypy_cache", "dist", "build",
+    "data", "data-online", "data-verify-debug", ".pytest-tmp",
 }
 
 SCAN_SUFFIXES = {
