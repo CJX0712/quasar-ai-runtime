@@ -35,7 +35,7 @@ jobs:
         run: uv run --no-sync python tools/verify.py
 
       - name: 单元测试 + 契约一致性测试
-        run: uv run --no-sync python -m pytest -q tests --basetemp=data/.pytest-tmp
+        run: uv run --no-sync python -m pytest -q tests --basetemp=data/.pytest-tmp --ignore=tools
 
   package-check:
     name: 构建分发包
