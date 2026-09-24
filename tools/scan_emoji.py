@@ -54,4 +54,7 @@ print(f"scanned_files={scanned}")
 print(f"violations={len(violations)}")
 for v in violations:
     print(v)
-sys.exit(1 if violations else 0)
+# 仅作为脚本直接运行时才设置退出码。被 import（tests/unit/test_tooling_gates.py）
+# 时顶层裸调 sys.exit 会让 pytest 收到 SystemExit，以 INTERNALERROR 崩掉。
+if __name__ == "__main__":
+    sys.exit(1 if violations else 0)
