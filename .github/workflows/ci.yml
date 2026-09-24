@@ -25,6 +25,9 @@ jobs:
       - name: 按锁定清单安装依赖（不做任何重新解析）
         run: uv sync --frozen
 
+      - name: 补充测试依赖（uv sync 不装 dev 组时兜底）
+        run: uv pip install pytest pytest-asyncio
+
       - name: 门禁 - 扫描 emoji 功能图标
         run: uv run --no-sync python tools/scan_emoji.py
 
